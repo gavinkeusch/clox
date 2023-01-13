@@ -1,25 +1,28 @@
 CC = gcc
 CFLAGS = -g -Wall
 
-all: clox
+INCLUDES=
+LFLAGS=
+LIBS=
 
-clox: chunk.o debug.o memory.o value.o main.o
-	$(CC) $(CFLAGS) chunk.o debug.o memory.o value.o main.o -o clox.out
+SRCS = chunk.c debug.c memory.c value.c main.c
+OBJS = $(SRCS:.c=.o)
+MAIN = clox
 
-chunk.o: chunk.c memory.h value.h
-	$(CC) $(CFLAGS) chunk.c -c chunk.o
+.PHONY: depend clean
 
-debug.o: debug.c chunk.h value.h
-	$(CC) $(CFLAGS) debug.c -c debug.o
+all: $(MAIN)
 
-memory.o: memory.c common.h
-	$(CC) $(CFLAGS) memory.c -c memory.o
+$(MAIN): $(OBJS)
+	$(CC) $(CFLAGS) -o $(MAIN) $(OBJS) $(LFLAGS) $(LIBS)
 
-value.o: value.c memory.h
-	$(CC) $(CFLAGS) value.c -c value.o
-
-main.o: main.c common.h chunk.h debug.h
-	$(CC) $(CFLAGS) main.c -c main.o
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	rm *.out *.o
+	$(RM) *.o $(MAIN)
+
+depend: $(SRCS)
+	makedepend $(INCLUDES) $^
+
+# DO NOT DELETE THIS LINE -- make depends needs it
