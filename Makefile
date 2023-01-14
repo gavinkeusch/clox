@@ -5,7 +5,7 @@ INCLUDES=
 LFLAGS=
 LIBS=
 
-SRCS = chunk.c debug.c memory.c value.c vm.c main.c
+SRCS = chunk.c debug.c memory.c value.c vm.c scanner.c compiler.c main.c
 OBJS = $(SRCS:.c=.o)
 MAIN = clox
 
