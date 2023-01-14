@@ -90,7 +90,20 @@ static interpret_result_t run() {
 }
 
 interpret_result_t interpret(const char* source) {
-    compile(source);
+    chunk_t chunk;
+    chunk_init(&chunk);
 
-    return INTERPRET_OK;
+    if (!compile(source, &chunk)) {
+        chunk_free(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+
+    vm.chunk = &chunk;
+    vm.ip = vm.chunk->code;
+
+    interpret_result_t result = run();
+
+    chunk_free(&chunk);
+
+    return result;
 }
