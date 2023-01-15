@@ -96,7 +96,7 @@ static void consume(token_type_t type, const char* message) {
 }
 
 static void emit_byte(uint8_t byte) {
-    chunk_write(current_chunk(), byte, parser.previous.line);
+    write_chunk(current_chunk(), byte, parser.previous.line);
 }
 
 static void emit_bytes(uint8_t byte1, uint8_t byte2) {
@@ -128,7 +128,7 @@ static void end_compiler() {
 
 #ifdef DEBUG_PRINT_CODE
     if (!parser.had_error) {
-        chunk_disassemble(current_chunk(), "code");
+        disassemble_chunk(current_chunk(), "code");
     }
 #endif
 }
@@ -210,6 +210,10 @@ static void number() {
     emit_constant(NUMBER_VAL(value));
 }
 
+static void string() {
+    emit_constant(OBJ_VAL(copy_string(parser.previous.start + 1, parser.previous.length - 2)));
+}
+
 static void  unary() {
     token_type_t operator_type = parser.previous.type;
 
@@ -249,7 +253,7 @@ parse_rule_t rules[] = {
         [TOKEN_LESS] = {NULL, binary, PREC_COMPARISON},
         [TOKEN_LESS_EQUAL] = {NULL, binary, PREC_COMPARISON},
         [TOKEN_IDENTIFIER] = {NULL, NULL, PREC_NONE},
-        [TOKEN_STRING] = {NULL, NULL, PREC_NONE},
+        [TOKEN_STRING] = {string, NULL, PREC_NONE},
         [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
         [TOKEN_AND] = {NULL, NULL, PREC_NONE},
         [TOKEN_CLASS] = {NULL, NULL, PREC_NONE},
@@ -294,7 +298,7 @@ static void parse_precedence(precedence_t precedence) {
 }
 
 bool compile(const char* source, chunk_t* chunk) {
-    scanner_init(source);
+    init_scanner(source);
     compiling_chunk = chunk;
 
     parser.had_error = false;

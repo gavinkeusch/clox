@@ -12,7 +12,7 @@ typedef struct {
 
 scanner_t scanner;
 
-void scanner_init(const char* source) {
+void init_scanner(const char* source) {
     scanner.start = source;
     scanner.current = source;
     scanner.line = 1;

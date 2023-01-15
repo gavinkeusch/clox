@@ -29,9 +29,9 @@ typedef struct {
     value_array_t constants;
 } chunk_t;
 
-void chunk_init(chunk_t* chunk);
-void chunk_free(chunk_t* chunk);
-void chunk_write(chunk_t* chunk, uint8_t byte, int line);
+void init_chunk(chunk_t* chunk);
+void free_chunk(chunk_t* chunk);
+void write_chunk(chunk_t* chunk, uint8_t byte, int line);
 int add_constant(chunk_t* chunk, value_t value);
 
 #endif
