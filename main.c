@@ -63,7 +63,7 @@ static void runFile(const char* path) {
 }
 
 int main(int argc, const char* argv[]) {
-    vm_init();
+    init_vm();
 
     if (argc == 1) {
         repl();
@@ -73,7 +73,7 @@ int main(int argc, const char* argv[]) {
         fprintf(stderr, "Usage: clox [path]\n");
     }
 
-    vm_free();
+    free_vm();
 
     return 0;
 }

@@ -7,7 +7,7 @@
 #include "value.h"
 #include "vm.h"
 
-#define ALLOCATE_OBJECT(type, object_type) \
+#define ALLOCATE_OBJ(type, object_type) \
     (type*)allocate_object(sizeof(type), object_type)
 
 static obj_t* allocate_object(size_t size, obj_type_t type) {
@@ -20,7 +20,7 @@ static obj_t* allocate_object(size_t size, obj_type_t type) {
 }
 
 static obj_string_t* allocate_string(char* chars, int length, uint32_t hash) {
-    obj_string_t* string = ALLOCATE(obj_string_t, OBJ_STRING);
+    obj_string_t* string = ALLOCATE_OBJ(obj_string_t, OBJ_STRING);
     string->length = length;
     string->chars = chars;
     string->hash = hash;

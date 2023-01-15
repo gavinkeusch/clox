@@ -29,13 +29,16 @@ static void runtime_error(const char* format, ...) {
     reset_stack();
 }
 
-void vm_init() {
+void init_vm() {
     reset_stack();
     vm.objects = NULL;
+
+    init_table(&vm.globals);
     init_table(&vm.strings);
 }
 
-void vm_free() {
+void free_vm() {
+    free_table(&vm.globals);
     free_table(&vm.strings);
     free_objects();
 }
@@ -74,6 +77,7 @@ static void concatenate() {
 static interpret_result_t run() {
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+#define READ_STRING() AS_STRING(READ_CONSTANT())
 
 #define BINARY_OP(value_type, op) \
     do {              \
@@ -116,18 +120,45 @@ static interpret_result_t run() {
             case OP_FALSE:
                 push(BOOL_VAL(false));
                 break;
+            case OP_POP:
+                pop();
+                break;
+            case OP_GET_GLOBAL: {
+                obj_string_t *name = READ_STRING();
+                value_t value;
+
+                if (!table_get(&vm.globals, name, &value)) {
+                    runtime_error("Undefined variable '%s'.", name->chars);
+                }
+
+                push(value);
+            } break;
+            case OP_DEFINE_GLOBAL: {
+                obj_string_t *name = READ_STRING();
+                table_set(&vm.globals, name, peek(0));
+                pop();
+            } break;
+            case OP_SET_GLOBAL: {
+                obj_string_t* name = READ_STRING();
+
+                if (table_set(&vm.globals, name, peek(0))) {
+                    table_delete(&vm.globals, name);
+                    runtime_error("Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+            } break;
             case OP_EQUAL: {
                 value_t a = pop();
                 value_t b = pop();
                 push(BOOL_VAL(values_equal(a, b)));
-                } break;
+            } break;
             case OP_GREATER:
                 BINARY_OP(BOOL_VAL, >);
                 break;
             case OP_LESS:
                 BINARY_OP(BOOL_VAL, <);
                 break;
-            case OP_ADD:
+            case OP_ADD: {
                 if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
                     concatenate();
                 } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
@@ -138,7 +169,7 @@ static interpret_result_t run() {
                     runtime_error("Operand must be two numbers or two strings.");
                     return INTERPRET_RUNTIME_ERROR;
                 }
-                break;
+            } break;
             case OP_SUBTRACT:
                 BINARY_OP(NUMBER_VAL, -);
                 break;
@@ -159,9 +190,12 @@ static interpret_result_t run() {
 
                 push(NUMBER_VAL(-AS_NUMBER(pop())));
                 break;
-            case OP_RETURN: {
+            case OP_PRINT:
                 print_value(pop());
                 printf("\n");
+                break;
+            case OP_RETURN: {
+                // exit interpreter
                 return INTERPRET_OK;
             }
         }
@@ -169,6 +203,7 @@ static interpret_result_t run() {
 
 #undef READ_BYTE
 #undef READ_CONSTANT
+#undef READ_STRING
 #undef BINARY_OP
 }
 
