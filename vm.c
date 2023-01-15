@@ -4,7 +4,6 @@
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
-#include "value.h"
 #include "vm.h"
 
 vm_t vm;
@@ -98,11 +97,11 @@ static interpret_result_t run() {
             case OP_FALSE:
                 push(BOOL_VAL(false));
                 break;
-            case OP_EQUAL:
+            case OP_EQUAL: {
                 value_t a = pop();
                 value_t b = pop();
                 push(BOOL_VAL(values_equal(a, b)));
-                break;
+                } break;
             case OP_GREATER:
                 BINARY_OP(BOOL_VAL, >);
                 break;
