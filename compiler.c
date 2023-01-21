@@ -299,7 +299,7 @@ static int add_upvalue(compiler_t* compiler, uint8_t index, bool is_local) {
     compiler->upvalues[upvalue_count].is_local = is_local;
     compiler->upvalues[upvalue_count].index = index;
 
-    return compiler->function->upvalue_count;
+    return compiler->function->upvalue_count++;
 }
 
 static int resolve_upvalue(compiler_t* compiler, token_t* name) {
@@ -334,7 +334,7 @@ static void add_local(token_t name) {
 
 static  void declare_variable() {
     // global variables are implicitly declared
-    if (current->scope_depth ==0)
+    if (current->scope_depth == 0)
         return;
 
     token_t* name = &parser.previous;
@@ -513,8 +513,8 @@ static void function(function_type_t type) {
                 error_at_current("Can't have more than 255 parameters.");
             }
 
-            uint8_t param_constant = parse_variable("Expect parameter name.");
-            define_variable(param_constant);
+            uint8_t constant = parse_variable("Expect parameter name.");
+            define_variable(constant);
         } while (match(TOKEN_COMMA));
     }
 
@@ -551,6 +551,7 @@ static void for_statement() {
     begin_scope();
 
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
+
     if (match(TOKEN_SEMICOLON)) {
         // no initializer
     } else if (match(TOKEN_VAR)) {
@@ -562,7 +563,7 @@ static void for_statement() {
     int loop_start = current_chunk()->count;
 
     int exit_jump = -1;
-    if (match(TOKEN_SEMICOLON)) {
+    if (!match(TOKEN_SEMICOLON)) {
         expression();
         consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
 

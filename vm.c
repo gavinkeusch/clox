@@ -109,8 +109,6 @@ static bool call_value(value_t callee, int arg_count) {
         switch (OBJ_TYPE(callee)) {
             case OBJ_CLOSURE:
                 return call(AS_CLOSURE(callee), arg_count);
-            case OBJ_FUNCTION:
-                return call(AS_FUNCTION(callee), arg_count);
             case OBJ_NATIVE: {
                 native_fn_t native = AS_NATIVE(callee);
                 value_t result = native(arg_count, vm.stack_top - arg_count);
@@ -176,6 +174,7 @@ static void concatenate() {
     char* chars = ALLOCATE(char, length + 1);
     memcpy(chars, a->chars, a->length);
     memcpy(chars + a->length, b->chars, b->length);
+    chars[length] = '\0';
 
     obj_string_t* result = take_string(chars, length);
     push(OBJ_VAL(result));
@@ -248,6 +247,7 @@ static interpret_result_t run() {
 
                 if (!table_get(&vm.globals, name, &value)) {
                     runtime_error("Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
                 }
 
                 push(value);
@@ -397,7 +397,7 @@ interpret_result_t interpret(const char* source) {
     obj_closure_t* closure = new_closure(function);
     pop();
     push(OBJ_VAL(closure));
-    call_value(OBJ_VAL(function), 0);
+    call(closure, 0);
 
     return run();
 }
